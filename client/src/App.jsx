@@ -5,7 +5,8 @@ import Dashboard from './components/Dashboard';
 import PatientForm from './components/PatientForm';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:5000');
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const socket = io(API_URL);
 
 function App() {
   const [alerts, setAlerts] = useState([]);

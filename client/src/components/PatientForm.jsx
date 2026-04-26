@@ -21,7 +21,8 @@ export default function PatientForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/patients', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      await axios.post(`${API_URL}/api/patients`, {
         ...formData,
         location: { lat: parseFloat(formData.lat), lng: parseFloat(formData.lng) }
       });

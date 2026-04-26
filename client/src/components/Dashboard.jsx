@@ -27,9 +27,10 @@ export default function Dashboard({ socket }) {
 
   const fetchData = async () => {
     try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const [hRes, pRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/hospitals'),
-        axios.get('http://localhost:5000/api/patients')
+        axios.get(`${API_URL}/api/hospitals`),
+        axios.get(`${API_URL}/api/patients`)
       ]);
       setHospitals(hRes.data);
       setPatients(pRes.data);
