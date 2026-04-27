@@ -18,7 +18,7 @@ export default function Dashboard({ socket }) {
 
   const fetchData = async () => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
       const [hRes, pRes] = await Promise.all([axios.get(`${API_URL}/api/hospitals`), axios.get(`${API_URL}/api/patients`)]);
       setHospitals(hRes.data); setPatients(pRes.data);
     } catch (err) { console.error(err); }

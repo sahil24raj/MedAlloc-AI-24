@@ -12,10 +12,23 @@ export default function PatientForm() {
   const handleSubmit = async (e) => {
     e.preventDefault(); setLoading(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      await axios.post(`${API_URL}/api/patients`, { ...formData, location: { lat: parseFloat(formData.lat), lng: parseFloat(formData.lng) } });
+      const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+      
+      // Safety check for mixed content
+      if (window.location.protocol === 'https:' && API_URL.startsWith('http://localhost')) {
+        console.warn('Backend URL is localhost but site is HTTPS. This request will likely fail due to Mixed Content.');
+      }
+
+      await axios.post(`${API_URL}/api/patients`, { 
+        ...formData, 
+        location: { lat: parseFloat(formData.lat), lng: parseFloat(formData.lng) } 
+      });
       navigate('/');
-    } catch (error) { console.error(error); alert('Galti ho gayi! Phir se try karein.'); }
+    } catch (error) { 
+      console.error(error); 
+      const msg = error.response?.data?.message || error.message;
+      alert(`Galti ho gayi! Error: ${msg}`); 
+    }
     setLoading(false);
   };
 
@@ -43,7 +56,7 @@ export default function PatientForm() {
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>calendar_today</span>
                 UMRA
               </label>
-              <input type="number" required min="0" max="120" placeholder="jaise: 45" className="neon-input" value={formData.age || ''} onChange={e => setFormData({...formData, age: e.target.value ? parseInt(e.target.value) : 0})} />
+              <input type="number" required min="0" max="120" placeholder="jaise: 45" className="neon-input" value={formData.age === 0 ? '' : formData.age} onChange={e => setFormData({...formData, age: e.target.value ? parseInt(e.target.value) : 0})} />
             </div>
           </div>
 

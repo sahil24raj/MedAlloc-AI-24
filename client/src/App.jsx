@@ -6,8 +6,8 @@ import AppointmentBooking from './components/AppointmentBooking';
 import LiveQueueTracker from './components/LiveQueueTracker';
 import { io } from 'socket.io-client';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const socket = io(API_URL);
+const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+const socket = io(API_URL, { path: '/socket.io' });
 
 function NavLink({ to, icon, children }) {
   const location = useLocation();

@@ -23,17 +23,34 @@ let mongoServer;
 
 async function connectDB() {
   let uri = process.env.MONGO_URI;
-  if (!uri) {
-    mongoServer = await MongoMemoryServer.create();
-    uri = mongoServer.getUri();
-  }
-  await mongoose.connect(uri);
-  console.log("MongoDB Connected:", uri);
   
-  // Seed initial dummy data if using memory server
-  if (!process.env.MONGO_URI) {
-    const seedHospitals = require('./seed');
-    await seedHospitals();
+  if (!uri) {
+    console.log("No MONGO_URI found, attempting to start MongoMemoryServer...");
+    try {
+      // MongoMemoryServer often fails in serverless environments like Vercel
+      if (process.env.VERCEL) {
+        throw new Error("MongoMemoryServer is not supported in Vercel serverless functions. Please provide a MONGO_URI.");
+      }
+      mongoServer = await MongoMemoryServer.create();
+      uri = mongoServer.getUri();
+    } catch (err) {
+      console.error("Failed to start MongoMemoryServer:", err.message);
+      // Fallback or just log and continue (it will fail later on DB calls, but server starts)
+      return;
+    }
+  }
+
+  try {
+    await mongoose.connect(uri);
+    console.log("MongoDB Connected:", uri);
+    
+    // Seed initial dummy data if using memory server or if explicitly told to
+    if (!process.env.MONGO_URI || process.env.SEED === 'true') {
+      const seedHospitals = require('./seed');
+      await seedHospitals();
+    }
+  } catch (err) {
+    console.error("MongoDB Connection Error:", err.message);
   }
 }
 connectDB().catch(console.error);
@@ -58,3 +75,5 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+module.exports = app;
