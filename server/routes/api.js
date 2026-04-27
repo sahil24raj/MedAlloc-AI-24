@@ -23,6 +23,11 @@ function deg2rad(deg) {
 }
 
 module.exports = function(io) {
+  // Test route for Vercel POST check
+  router.post('/test', (req, res) => {
+    res.json({ message: "POST Success!", data: req.body });
+  });
+
   // Get all hospitals
   router.get('/hospitals', async (req, res) => {
     try {
