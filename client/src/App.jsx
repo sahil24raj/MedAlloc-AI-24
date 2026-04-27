@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Activity, Plus, LayoutDashboard } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import PatientForm from './components/PatientForm';
+import AppointmentBooking from './components/AppointmentBooking';
+import LiveQueueTracker from './components/LiveQueueTracker';
 import { io } from 'socket.io-client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -39,6 +41,14 @@ function App() {
               <Plus className="w-5 h-5" />
               <span>Patient Intake</span>
             </Link>
+            <Link to="/booking" className="flex items-center space-x-2 hover:text-emerald-400 transition">
+              <Plus className="w-5 h-5" />
+              <span>Book Appointment</span>
+            </Link>
+            <Link to="/queue" className="flex items-center space-x-2 hover:text-cyan-400 transition">
+              <Activity className="w-5 h-5" />
+              <span>Live Queue</span>
+            </Link>
           </div>
         </nav>
 
@@ -57,6 +67,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard socket={socket} />} />
             <Route path="/intake" element={<PatientForm />} />
+            <Route path="/booking" element={<AppointmentBooking />} />
+            <Route path="/queue" element={<LiveQueueTracker socket={socket} />} />
           </Routes>
         </main>
       </div>

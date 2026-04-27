@@ -3,6 +3,7 @@ const router = express.Router();
 const axios = require('axios');
 const Hospital = require('../models/Hospital');
 const Patient = require('../models/Patient');
+const Appointment = require('../models/Appointment');
 
 // Utility to calculate distance between two coordinates (Haversine formula)
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
@@ -116,6 +117,83 @@ module.exports = function(io) {
       res.status(201).json(populatedPatient);
     } catch (err) {
       console.error(err);
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // --- Appointment Booking Routes ---
+
+  // Book a new appointment
+  router.post('/appointments', async (req, res) => {
+    try {
+      const { patient_name, hospital_id, doctor_name, problem_type, preferred_time, priority_level } = req.body;
+
+      // 1. Calculate Queue Position
+      const waitingCount = await Appointment.countDocuments({ 
+        hospital_id, 
+        status: 'Waiting' 
+      });
+
+      const queue_number = waitingCount + 1;
+      
+      // 2. Estimate consultation time (20 mins per patient before)
+      const avg_consultation_time = 20; // minutes
+      const now = new Date();
+      const waitTime = waitingCount * avg_consultation_time;
+      const estimated_time = new Date(now.getTime() + waitTime * 60000);
+
+      // 3. Create Appointment
+      const appointment = new Appointment({
+        patient_name,
+        hospital_id,
+        doctor_name,
+        problem_type,
+        preferred_time: new Date(preferred_time),
+        queue_number,
+        estimated_time,
+        priority_level: priority_level || 'General',
+        status: 'Waiting'
+      });
+
+      await appointment.save();
+
+      // 4. Emit update
+      io.emit('appointment_new', { appointment });
+      
+      res.status(201).json(appointment);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // Get live queue for a hospital
+  router.get('/appointments/queue/:hospital_id', async (req, res) => {
+    try {
+      const appointments = await Appointment.find({ 
+        hospital_id: req.params.hospital_id,
+        status: 'Waiting'
+      }).sort({ queue_number: 1 });
+      
+      res.json(appointments);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // Update appointment status (e.g., Completed)
+  router.put('/appointments/:id/status', async (req, res) => {
+    try {
+      const { status } = req.body;
+      const appointment = await Appointment.findByIdAndUpdate(req.params.id, { status }, { new: true });
+      
+      if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+
+      // If completed or no-show, recalculate queue for others? 
+      // For simplicity, we just notify clients to refresh
+      io.emit('appointment_update', { appointment });
+
+      res.json(appointment);
+    } catch (err) {
       res.status(500).json({ message: err.message });
     }
   });

@@ -2,10 +2,33 @@
 
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-100;
+    @apply bg-slate-900 text-slate-100 antialiased;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
   }
 }
 
 .glass-panel {
-  @apply bg-slate-800/80 backdrop-blur-md border border-slate-700/50 rounded-2xl shadow-xl;
+  @apply bg-slate-800/40 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl transition-all duration-300;
+}
+
+.glass-panel:hover {
+  @apply border-white/20 bg-slate-800/60;
+}
+
+/* Custom Animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.ticket-shadow {
+  box-shadow: 0 20px 50px -12px rgba(16, 185, 129, 0.2);
 }
