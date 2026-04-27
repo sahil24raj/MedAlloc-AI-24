@@ -13,8 +13,8 @@ export default function PatientForm() {
     symptoms_severity: 50,
     oxygen_level: 95,
     comorbidities: 0,
-    lat: 40.7128,
-    lng: -74.0060
+    lat: 28.6139,
+    lng: 77.2090
   });
 
   const handleSubmit = async (e) => {

@@ -197,7 +197,7 @@ module.exports = function(io) {
   // Get doctor-wise queue counts at a hospital (for showing all doctor slots)
   router.get('/appointments/doctor-slots/:hospital_id', async (req, res) => {
     try {
-      const allDoctors = ['Dr. Sarah Wilson', 'Dr. James Miller', 'Dr. Elena Rodriguez', 'Dr. David Chen'];
+      const allDoctors = ['Dr. Priya Sharma', 'Dr. Rajesh Gupta', 'Dr. Anjali Mehta', 'Dr. Vikram Patel'];
       const slots = [];
 
       for (const doctor of allDoctors) {
