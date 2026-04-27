@@ -17,34 +17,40 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-const { MongoMemoryServer } = require('mongodb-memory-server');
-
-let mongoServer;
+let dbConnected = false;
 
 async function connectDB() {
+  if (dbConnected || mongoose.connection.readyState === 1) {
+    dbConnected = true;
+    return;
+  }
+
   let uri = process.env.MONGO_URI;
-  
+
   if (!uri) {
-    console.log("No MONGO_URI found, attempting to start MongoMemoryServer...");
+    // On Vercel, we CANNOT use MongoMemoryServer — it downloads binaries which is not allowed
+    if (process.env.VERCEL) {
+      console.error("VERCEL detected but no MONGO_URI set. Database will not be available.");
+      return;
+    }
+    // Local development: use in-memory MongoDB
+    console.log("No MONGO_URI found, starting MongoMemoryServer for local dev...");
     try {
-      // MongoMemoryServer often fails in serverless environments like Vercel
-      if (process.env.VERCEL) {
-        throw new Error("MongoMemoryServer is not supported in Vercel serverless functions. Please provide a MONGO_URI.");
-      }
-      mongoServer = await MongoMemoryServer.create();
+      const { MongoMemoryServer } = require('mongodb-memory-server');
+      const mongoServer = await MongoMemoryServer.create();
       uri = mongoServer.getUri();
     } catch (err) {
-      console.error("Failed to start MongoMemoryServer:", err.message);
-      // Fallback or just log and continue (it will fail later on DB calls, but server starts)
+      console.error("MongoMemoryServer failed:", err.message);
       return;
     }
   }
 
   try {
     await mongoose.connect(uri);
-    console.log("MongoDB Connected:", uri);
-    
-    // Seed initial dummy data if using memory server or if explicitly told to
+    dbConnected = true;
+    console.log("MongoDB Connected:", uri.substring(0, 30) + '...');
+
+    // Seed data if using memory server or explicitly told to
     if (!process.env.MONGO_URI || process.env.SEED === 'true') {
       const seedHospitals = require('./seed');
       await seedHospitals();
@@ -53,7 +59,9 @@ async function connectDB() {
     console.error("MongoDB Connection Error:", err.message);
   }
 }
-connectDB().catch(console.error);
+
+// Connect immediately (but don't block module export)
+const dbReady = connectDB().catch(console.error);
 
 // Socket.io connection
 io.on('connection', (socket) => {
@@ -68,12 +76,16 @@ const apiRoutes = require('./routes/api')(io);
 app.use('/api', apiRoutes);
 
 app.get('/', (req, res) => {
-  res.send('MedAlloc API Running');
+  res.json({ status: 'ok', message: 'Sehat Sync AI — API Running', db: dbConnected });
 });
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Only start listening when NOT on Vercel (Vercel handles routing itself)
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
+// Export for Vercel serverless
 module.exports = app;

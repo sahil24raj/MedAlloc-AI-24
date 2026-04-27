@@ -20,20 +20,24 @@ export default function Dashboard({ socket }) {
     try {
       const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
       const [hRes, pRes] = await Promise.all([axios.get(`${API_URL}/api/hospitals`), axios.get(`${API_URL}/api/patients`)]);
-      setHospitals(hRes.data); setPatients(pRes.data);
-    } catch (err) { console.error(err); }
+      
+      // Safety checks: API might return HTML on 404 or an error object
+      if (Array.isArray(hRes.data)) setHospitals(hRes.data);
+      if (Array.isArray(pRes.data)) setPatients(pRes.data);
+    } catch (err) { console.error('Dashboard Fetch Error:', err); }
   };
 
-  const totalICU = hospitals.reduce((s, h) => s + h.resources.icu_beds, 0);
-  const totalGeneral = hospitals.reduce((s, h) => s + h.resources.general_beds, 0);
-  const totalO2 = hospitals.reduce((s, h) => s + h.resources.oxygen_cylinders, 0);
-  const totalVent = hospitals.reduce((s, h) => s + h.resources.ventilators, 0);
+  const safeHospitals = Array.isArray(hospitals) ? hospitals : [];
+  const totalICU = safeHospitals.reduce((s, h) => s + (h.resources?.icu_beds || 0), 0);
+  const totalGeneral = safeHospitals.reduce((s, h) => s + (h.resources?.general_beds || 0), 0);
+  const totalO2 = safeHospitals.reduce((s, h) => s + (h.resources?.oxygen_cylinders || 0), 0);
+  const totalVent = safeHospitals.reduce((s, h) => s + (h.resources?.ventilators || 0), 0);
 
   const chartData = {
-    labels: hospitals.map(h => h.name),
+    labels: safeHospitals.map(h => h.name || 'Unknown'),
     datasets: [
-      { label: 'ICU Bistar', data: hospitals.map(h => h.resources.icu_beds), backgroundColor: 'rgba(255,180,171,0.6)', borderColor: 'rgba(255,180,171,0.8)', borderWidth: 1, borderRadius: 3 },
-      { label: 'Saadharan Bistar', data: hospitals.map(h => h.resources.general_beds), backgroundColor: 'rgba(0,219,233,0.5)', borderColor: 'rgba(0,219,233,0.8)', borderWidth: 1, borderRadius: 3 }
+      { label: 'ICU Bistar', data: safeHospitals.map(h => h.resources?.icu_beds || 0), backgroundColor: 'rgba(255,180,171,0.6)', borderColor: 'rgba(255,180,171,0.8)', borderWidth: 1, borderRadius: 3 },
+      { label: 'Saadharan Bistar', data: safeHospitals.map(h => h.resources?.general_beds || 0), backgroundColor: 'rgba(0,219,233,0.5)', borderColor: 'rgba(0,219,233,0.8)', borderWidth: 1, borderRadius: 3 }
     ]
   };
 
@@ -86,7 +90,7 @@ export default function Dashboard({ socket }) {
             HAAL_HI_KE_MAREEZ
           </h2>
           <div className="overflow-y-auto flex-1 pr-2 space-y-3">
-            {patients.map(p => (
+            {(Array.isArray(patients) ? patients : []).map(p => (
               <div key={p._id} className="p-4 rounded flex justify-between items-center transition hover:bg-white/[0.02]" style={{ background: 'rgba(30,32,36,0.5)', border: '1px solid rgba(59,73,75,0.3)' }}>
                 <div>
                   <h3 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: '15px', color: '#e2e2e8' }}>
@@ -115,7 +119,7 @@ export default function Dashboard({ socket }) {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {hospitals.map(h => (
+        {(Array.isArray(hospitals) ? hospitals : []).map(h => (
           <div key={h._id} className="glass-panel p-6 tech-grid relative overflow-hidden hover:-translate-y-0.5 transition-transform">
             <div className="absolute top-0 right-0 w-24 h-24" style={{ background: 'radial-gradient(circle at top right, rgba(0,219,233,0.06), transparent)' }}></div>
             <h3 className="neon-text mb-4" style={{ fontFamily: 'Space Grotesk', fontSize: '16px', fontWeight: 700 }}>

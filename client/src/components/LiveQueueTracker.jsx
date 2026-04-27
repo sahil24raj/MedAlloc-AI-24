@@ -10,7 +10,11 @@ export default function LiveQueueTracker({ socket }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    axios.get(`${API_URL}/api/hospitals`).then(res => { setHospitals(res.data); if (res.data.length > 0) setSelectedHospital(res.data[0]._id); }).catch(console.error);
+    axios.get(`${API_URL}/api/hospitals`).then(res => {
+      const data = Array.isArray(res.data) ? res.data : [];
+      setHospitals(data);
+      if (data.length > 0) setSelectedHospital(data[0]._id);
+    }).catch(console.error);
   }, []);
   useEffect(() => { if (selectedHospital) fetchQueue(); }, [selectedHospital]);
   useEffect(() => {
@@ -23,7 +27,10 @@ export default function LiveQueueTracker({ socket }) {
 
   const fetchQueue = async () => {
     setLoading(true);
-    try { const res = await axios.get(`${API_URL}/api/appointments/queue/${selectedHospital}`); setQueue(res.data); } catch (err) { console.error(err); }
+    try {
+      const res = await axios.get(`${API_URL}/api/appointments/queue/${selectedHospital}`);
+      setQueue(Array.isArray(res.data) ? res.data : []);
+    } catch (err) { console.error(err); }
     setLoading(false);
   };
   const handleStatusUpdate = async (id, status) => { try { await axios.put(`${API_URL}/api/appointments/${id}/status`, { status }); } catch (err) { console.error(err); } };
@@ -44,16 +51,16 @@ export default function LiveQueueTracker({ socket }) {
           <span className="material-symbols-outlined" style={{ color: '#849495', fontSize: '18px' }}>local_hospital</span>
           <select className="bg-transparent outline-none" style={{ color: '#e2e2e8', fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: '13px' }}
             value={selectedHospital} onChange={e => setSelectedHospital(e.target.value)}>
-            {hospitals.map(h => <option key={h._id} value={h._id} style={{ background: '#111318' }}>{h.name}</option>)}
+            {(Array.isArray(hospitals) ? hospitals : []).map(h => <option key={h._id} value={h._id} style={{ background: '#111318' }}>{h.name}</option>)}
           </select>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {[
-          { label: 'LINE_MEIN', value: queue.length, color: '#00dbe9', icon: 'groups', sub: 'ACTIVE_CONSULTATIONS' },
-          { label: 'AUSAT_INTEZAAR', value: `${queue.length * 15}m`, color: '#bcff5f', icon: 'schedule', sub: 'LIVE_UPDATE' },
-          { label: 'ZARURI_CASE', value: queue.filter(a => a.priority_level !== 'General').length, color: '#ffb4ab', icon: 'priority_high', sub: 'DHYAN_CHAHIYE' }
+          { label: 'LINE_MEIN', value: (Array.isArray(queue) ? queue : []).length, color: '#00dbe9', icon: 'groups', sub: 'ACTIVE_CONSULTATIONS' },
+          { label: 'AUSAT_INTEZAAR', value: `${(Array.isArray(queue) ? queue : []).length * 15}m`, color: '#bcff5f', icon: 'schedule', sub: 'LIVE_UPDATE' },
+          { label: 'ZARURI_CASE', value: (Array.isArray(queue) ? queue : []).filter(a => a.priority_level !== 'General').length, color: '#ffb4ab', icon: 'priority_high', sub: 'DHYAN_CHAHIYE' }
         ].map(stat => (
           <div key={stat.label} className="glass-panel p-5" style={{ borderColor: `${stat.color}15` }}>
             <p style={{ fontSize: '10px', color: '#3b494b', fontFamily: 'Space Grotesk', fontWeight: 700, letterSpacing: '0.1em' }}>{stat.label}</p>
@@ -74,7 +81,7 @@ export default function LiveQueueTracker({ socket }) {
               ))}
             </tr></thead>
             <tbody>
-              {queue.map(appt => (
+              {(Array.isArray(queue) ? queue : []).map(appt => (
                 <tr key={appt._id} className="group transition hover:bg-white/[0.02]" style={{ borderBottom: '1px solid rgba(30,32,36,0.8)' }}>
                   <td className="px-6 py-4"><span className="neon-text" style={{ fontSize: '16px', fontFamily: 'Space Grotesk', fontWeight: 700 }}>#{appt.queue_number}</span></td>
                   <td className="px-6 py-4">

@@ -24,13 +24,14 @@ export default function AppointmentBooking() {
 
   useEffect(() => {
     axios.get(`${API_URL}/api/hospitals`).then(res => {
-      setHospitals(res.data);
-      if (res.data.length > 0) setFormData(prev => ({ ...prev, hospital_id: res.data[0]._id }));
+      const data = Array.isArray(res.data) ? res.data : [];
+      setHospitals(data);
+      if (data.length > 0) setFormData(prev => ({ ...prev, hospital_id: data[0]._id }));
     }).catch(console.error);
   }, []);
 
   useEffect(() => {
-    if (formData.hospital_id) axios.get(`${API_URL}/api/appointments/doctor-slots/${formData.hospital_id}`).then(res => setDoctorSlots(res.data)).catch(console.error);
+    if (formData.hospital_id) axios.get(`${API_URL}/api/appointments/doctor-slots/${formData.hospital_id}`).then(res => setDoctorSlots(Array.isArray(res.data) ? res.data : [])).catch(console.error);
   }, [formData.hospital_id]);
 
   const fetchEstimate = useCallback(async () => {

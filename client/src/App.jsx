@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import PatientForm from './components/PatientForm';
@@ -6,8 +6,41 @@ import AppointmentBooking from './components/AppointmentBooking';
 import LiveQueueTracker from './components/LiveQueueTracker';
 import { io } from 'socket.io-client';
 
-const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
-const socket = io(API_URL, { path: '/socket.io' });
+// Safely compute API_URL — never throw at module level
+const API_URL = (() => {
+  try {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') return 'http://localhost:5000';
+    if (typeof window !== 'undefined') return window.location.origin;
+    return '';
+  } catch { return ''; }
+})();
+
+// Dummy socket — used as fallback when real socket can't connect
+const DUMMY_SOCKET = {
+  on: () => {},
+  off: () => {},
+  emit: () => {},
+  connected: false,
+};
+
+// Deferred socket connection — only connects once getSocket() is called
+let socketInstance = null;
+function getSocket() {
+  if (socketInstance) return socketInstance;
+  try {
+    socketInstance = io(API_URL, {
+      path: '/socket.io',
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 3,
+      timeout: 5000,
+    });
+  } catch (e) {
+    console.warn('Socket.io init failed:', e.message);
+    socketInstance = DUMMY_SOCKET;
+  }
+  return socketInstance;
+}
 
 function NavLink({ to, icon, children }) {
   const location = useLocation();
@@ -24,10 +57,23 @@ function NavLink({ to, icon, children }) {
 
 function AppContent() {
   const [alerts, setAlerts] = useState([]);
+  const socketRef = useRef(null);
+
   useEffect(() => {
-    socket.on('alert', (data) => { setAlerts((prev) => [...prev, data.message]); setTimeout(() => setAlerts((prev) => prev.slice(1)), 10000); });
-    return () => socket.off('alert');
+    socketRef.current = getSocket();
+    const s = socketRef.current;
+    if (s && typeof s.on === 'function') {
+      s.on('alert', (data) => {
+        setAlerts((prev) => [...prev, data?.message || 'Alert']);
+        setTimeout(() => setAlerts((prev) => prev.slice(1)), 10000);
+      });
+    }
+    return () => {
+      if (s && typeof s.off === 'function') s.off('alert');
+    };
   }, []);
+
+  const socket = socketRef.current || getSocket();
 
   return (
     <div className="min-h-screen flex flex-col tech-grid relative" style={{ background: '#111318', color: '#e2e2e8' }}>
