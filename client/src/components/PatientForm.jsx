@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Stethoscope, Send, AlertTriangle } from 'lucide-react';
 
 export default function PatientForm() {
   const navigate = useNavigate();
@@ -35,91 +34,104 @@ export default function PatientForm() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-3xl mx-auto space-y-8">
       <header className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-white flex items-center justify-center space-x-3">
-          <Stethoscope className="text-cyan-400 w-8 h-8" />
-          <span>New Patient Intake</span>
+        <h1 className="neon-text flex items-center justify-center gap-3" style={{ fontFamily: 'Space Grotesk', fontSize: '28px', fontWeight: 700, letterSpacing: '-0.02em' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '28px', fontVariationSettings: "'FILL' 1" }}>stethoscope</span>
+          PATIENT_INTAKE
         </h1>
-        <p className="text-slate-400 mt-2">AI will automatically analyze vitals and allocate the optimal hospital resources.</p>
+        <p style={{ color: '#849495', fontFamily: 'Space Grotesk', fontSize: '13px', letterSpacing: '0.05em', marginTop: '6px' }}>
+          AI ENGINE WILL ANALYZE VITALS AND ALLOCATE OPTIMAL RESOURCES
+        </p>
       </header>
 
       <div className="glass-panel p-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Patient Name</label>
+              <label className="neon-label block mb-2">PATIENT_NAME</label>
               <input 
-                type="text" required
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                type="text" required placeholder="e.g. Rahul Kumar"
+                className="neon-input"
                 value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Age</label>
+              <label className="neon-label block mb-2">AGE</label>
               <input 
-                type="number" required min="0" max="120"
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                type="number" required min="0" max="120" placeholder="e.g. 35"
+                className="neon-input"
                 value={formData.age} onChange={e => setFormData({...formData, age: parseInt(e.target.value)})}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Symptoms Description</label>
+            <label className="neon-label block mb-2">SYMPTOMS_LOG</label>
             <textarea 
-              required rows="3"
-              className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition resize-none"
+              required rows="3" placeholder="Describe symptoms — e.g. Bukhar, Sardi, Sans lene me taklif"
+              className="neon-input resize-none"
+              style={{ borderBottom: 'none', border: '1px solid rgba(59, 73, 75, 0.4)', borderRadius: '0.25rem', padding: '0.75rem' }}
               value={formData.symptoms} onChange={e => setFormData({...formData, symptoms: e.target.value})}
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-slate-700/50">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6" style={{ borderTop: '1px solid rgba(59, 73, 75, 0.2)' }}>
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center space-x-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <span>Symptom Severity (0-100)</span>
+              <div className="flex justify-between items-center mb-3">
+                <label className="neon-label flex items-center gap-2">
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#ffb4ab' }}>warning</span>
+                  SEVERITY_INDEX
                 </label>
-                <span className="text-emerald-400 font-bold">{formData.symptoms_severity}</span>
+                <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: '18px', color: formData.symptoms_severity > 70 ? '#ffb4ab' : '#00dbe9' }}>
+                  {formData.symptoms_severity}
+                </span>
               </div>
               <input 
                 type="range" min="0" max="100" 
-                className="w-full accent-emerald-500"
+                className="w-full"
+                style={{ accentColor: '#00dbe9' }}
                 value={formData.symptoms_severity} onChange={e => setFormData({...formData, symptoms_severity: parseInt(e.target.value)})}
               />
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-sm font-medium text-slate-300">Blood Oxygen (SpO2 %)</label>
-                <span className={`font-bold ${formData.oxygen_level < 90 ? 'text-red-400' : 'text-emerald-400'}`}>
+              <div className="flex justify-between items-center mb-3">
+                <label className="neon-label">SPO2_LEVEL</label>
+                <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: '18px', color: formData.oxygen_level < 90 ? '#ffb4ab' : '#bcff5f' }}>
                   {formData.oxygen_level}%
                 </span>
               </div>
               <input 
                 type="range" min="50" max="100" 
-                className="w-full accent-cyan-500"
+                className="w-full"
+                style={{ accentColor: '#bcff5f' }}
                 value={formData.oxygen_level} onChange={e => setFormData({...formData, oxygen_level: parseInt(e.target.value)})}
               />
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-700/50">
-            <label className="block text-sm font-medium text-slate-300 mb-4">Pre-existing Comorbidities</label>
-            <div className="flex space-x-4">
-              {[0, 1, 2].map((level) => (
-                <label key={level} className={`flex-1 cursor-pointer rounded-lg border p-4 text-center transition ${
-                  formData.comorbidities === level 
-                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' 
-                    : 'border-slate-700 bg-slate-900/30 text-slate-400 hover:border-slate-500'
-                }`}>
+          <div className="pt-6" style={{ borderTop: '1px solid rgba(59, 73, 75, 0.2)' }}>
+            <label className="neon-label block mb-4">COMORBIDITY_LEVEL</label>
+            <div className="flex gap-4">
+              {[
+                { level: 0, label: 'NONE', color: '#00dbe9' },
+                { level: 1, label: 'MILD', color: '#bcff5f' },
+                { level: 2, label: 'SEVERE', color: '#ffb4ab' }
+              ].map(({ level, label, color }) => (
+                <label key={level} className={`flex-1 cursor-pointer rounded p-4 text-center transition-all ${
+                  formData.comorbidities === level ? 'neon-glow' : ''
+                }`} style={{
+                  background: formData.comorbidities === level ? `rgba(${color === '#00dbe9' ? '0,219,233' : color === '#bcff5f' ? '188,255,95' : '255,180,171'},0.08)` : 'rgba(30,32,36,0.4)',
+                  border: `1px solid ${formData.comorbidities === level ? color + '60' : 'rgba(59,73,75,0.3)'}`,
+                  color: formData.comorbidities === level ? color : '#849495'
+                }}>
                   <input 
                     type="radio" className="hidden" name="comorbidities"
                     checked={formData.comorbidities === level} 
                     onChange={() => setFormData({...formData, comorbidities: level})}
                   />
-                  <span className="font-semibold block">{level === 0 ? 'None' : level === 1 ? 'Mild' : 'Severe'}</span>
+                  <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: '13px', letterSpacing: '0.1em' }}>{label}</span>
                 </label>
               ))}
             </div>
@@ -128,14 +140,14 @@ export default function PatientForm() {
           <div className="pt-6">
             <button 
               type="submit" disabled={loading}
-              className="w-full bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-400 hover:to-cyan-500 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] flex justify-center items-center space-x-2 disabled:opacity-50"
+              className="w-full py-4 rounded neon-btn-solid flex justify-center items-center gap-3 disabled:opacity-50"
             >
               {loading ? (
-                <span className="animate-pulse">Processing via AI Engine...</span>
+                <span className="animate-pulse" style={{ fontFamily: 'Space Grotesk' }}>PROCESSING_VIA_AI_ENGINE...</span>
               ) : (
                 <>
-                  <span>Evaluate & Allocate Resource</span>
-                  <Send className="w-5 h-5" />
+                  <span>EVALUATE_AND_ALLOCATE</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>send</span>
                 </>
               )}
             </button>

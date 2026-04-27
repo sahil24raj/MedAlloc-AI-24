@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Activity, Plus, LayoutDashboard, Calendar, Radio } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import PatientForm from './components/PatientForm';
 import AppointmentBooking from './components/AppointmentBooking';
@@ -10,19 +9,20 @@ import { io } from 'socket.io-client';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const socket = io(API_URL);
 
-function NavLink({ to, icon: Icon, children }) {
+function NavLink({ to, icon, children }) {
   const location = useLocation();
   const isActive = location.pathname === to;
   return (
     <Link 
       to={to} 
-      className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
+      className={`flex items-center space-x-2.5 px-4 py-2.5 rounded transition-all text-sm tracking-wide ${
         isActive 
-          ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
-          : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+          ? 'neon-btn neon-glow' 
+          : 'text-[#849495] hover:text-[#00dbe9] hover:bg-white/[0.03]'
       }`}
+      style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '12px' }}
     >
-      <Icon className="w-4 h-4" />
+      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{icon}</span>
       <span>{children}</span>
     </Link>
   );
@@ -40,40 +40,49 @@ function AppContent() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans">
+    <div className="min-h-screen flex flex-col tech-grid relative" style={{ background: '#111318', color: '#e2e2e8' }}>
+      {/* Scanline overlay */}
+      <div className="scanline" style={{ position: 'fixed', zIndex: 60, pointerEvents: 'none' }}></div>
+
+      {/* Background glow blobs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <div className="absolute" style={{ top: '-10%', right: '-10%', width: '600px', height: '600px', background: 'rgba(0, 240, 255, 0.06)', borderRadius: '50%', filter: 'blur(120px)' }}></div>
+        <div className="absolute" style={{ bottom: '-20%', left: '-10%', width: '800px', height: '800px', background: 'rgba(149, 228, 0, 0.03)', borderRadius: '50%', filter: 'blur(150px)' }}></div>
+      </div>
+
       {/* Navbar */}
-      <nav className="glass-panel sticky top-0 z-50 rounded-none border-x-0 border-t-0 flex items-center justify-between px-6 py-3">
+      <nav className="glass-panel sticky top-0 z-50 flex items-center justify-between px-6 py-3" style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
         <Link to="/" className="flex items-center space-x-3 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition">
-            <Activity className="text-white w-5 h-5" />
+          <div className="w-9 h-9 rounded flex items-center justify-center neon-glow" style={{ background: 'rgba(0, 219, 233, 0.12)', border: '1px solid rgba(0, 219, 233, 0.3)' }}>
+            <span className="material-symbols-outlined" style={{ color: '#00dbe9', fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>psychology</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-emerald-400">
-              MedAlloc AI
+            <span className="neon-text" style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: '18px', letterSpacing: '-0.02em' }}>
+              MEDALLOC_AI
             </span>
-            <span className="text-[9px] text-slate-500 font-medium -mt-1 tracking-wider uppercase">Smart Hospital System — India</span>
+            <span className="sys-footer" style={{ fontSize: '9px', marginTop: '-2px' }}>NEURO-CORE OPS v4.0 — INDIA</span>
           </div>
         </Link>
-        <div className="flex items-center space-x-2">
-          <NavLink to="/" icon={LayoutDashboard}>Dashboard</NavLink>
-          <NavLink to="/intake" icon={Plus}>Patient Intake</NavLink>
-          <NavLink to="/booking" icon={Calendar}>Appointment</NavLink>
-          <NavLink to="/queue" icon={Radio}>Live Queue</NavLink>
+        <div className="flex items-center space-x-1.5">
+          <NavLink to="/" icon="dashboard">Dashboard</NavLink>
+          <NavLink to="/intake" icon="person_add">Intake</NavLink>
+          <NavLink to="/booking" icon="calendar_month">Booking</NavLink>
+          <NavLink to="/queue" icon="radio">Live_Queue</NavLink>
         </div>
       </nav>
 
       {/* Alerts */}
       <div className="fixed top-16 right-6 z-50 space-y-2">
         {alerts.map((msg, idx) => (
-          <div key={idx} className="bg-red-500/90 text-white px-5 py-3 rounded-xl shadow-2xl shadow-red-500/20 flex items-center space-x-3 animate-pulse backdrop-blur-sm border border-red-400/30">
-            <Activity className="w-5 h-5" />
-            <span className="font-semibold text-sm">{msg}</span>
+          <div key={idx} className="glass-panel flex items-center space-x-3 px-5 py-3" style={{ borderColor: 'rgba(255, 180, 171, 0.3)', animation: 'pulseGlow 2s infinite' }}>
+            <span className="material-symbols-outlined" style={{ color: '#ffb4ab', fontSize: '20px' }}>warning</span>
+            <span className="chip-danger">{msg}</span>
           </div>
         ))}
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-8">
+      <main className="flex-1 p-6 md:p-8 relative z-10">
         <Routes>
           <Route path="/" element={<Dashboard socket={socket} />} />
           <Route path="/intake" element={<PatientForm />} />
@@ -82,11 +91,16 @@ function AppContent() {
         </Routes>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 py-4 px-6 text-center">
-        <p className="text-xs text-slate-600">
-          🏥 MedAlloc AI — AI-Powered Smart Hospital Resource Allocation System | Made in India 🇮🇳
-        </p>
+      {/* Footer — Stitch style */}
+      <footer className="fixed bottom-0 w-full px-6 py-3 flex justify-between items-center sys-footer pointer-events-none z-40" style={{ borderTop: '1px solid rgba(0, 219, 233, 0.06)' }}>
+        <div>ENCRYPTION: AES-256-GCM | SECTOR: MEDICAL_OPS_INDIA</div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <span className="pulse-glow-green inline-block" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#bcff5f' }}></span>
+            SYSTEM_STABLE
+          </div>
+          <div>LATENCY: 14MS</div>
+        </div>
       </footer>
     </div>
   );
