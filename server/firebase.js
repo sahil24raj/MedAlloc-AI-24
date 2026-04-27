@@ -9,7 +9,12 @@ function initFirebase() {
     let serviceAccount;
     
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      try {
+        const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+        serviceAccount = JSON.parse(rawJson.startsWith('{') ? rawJson : Buffer.from(rawJson, 'base64').toString());
+      } catch (e) {
+        console.error("FIREBASE_SERVICE_ACCOUNT JSON Parse failed:", e.message);
+      }
     } else if (process.env.VERCEL) {
       console.warn("FIREBASE_SERVICE_ACCOUNT not found in environment. Firestore might fail.");
       // Fallback or attempt default initialization if running on GCP/Firebase environment

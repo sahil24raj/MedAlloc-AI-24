@@ -18,8 +18,7 @@ export default function Dashboard({ socket }) {
 
   const fetchData = async () => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
-      const [hRes, pRes] = await Promise.all([axios.get(`${API_URL}/api/hospitals`), axios.get(`${API_URL}/api/patients`)]);
+      const [hRes, pRes] = await Promise.all([axios.get('/api/hospitals'), axios.get('/api/patients')]);
       
       // Safety checks: API might return HTML on 404 or an error object
       if (Array.isArray(hRes.data)) setHospitals(hRes.data);

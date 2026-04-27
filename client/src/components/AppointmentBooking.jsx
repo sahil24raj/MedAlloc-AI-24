@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
-
 export default function AppointmentBooking() {
   const [loading, setLoading] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(null);
@@ -23,7 +21,7 @@ export default function AppointmentBooking() {
   ];
 
   useEffect(() => {
-    axios.get(`${API_URL}/api/hospitals`).then(res => {
+    axios.get('/api/hospitals').then(res => {
       const data = Array.isArray(res.data) ? res.data : [];
       setHospitals(data);
       if (data.length > 0) setFormData(prev => ({ ...prev, hospital_id: data[0]._id }));
@@ -31,14 +29,14 @@ export default function AppointmentBooking() {
   }, []);
 
   useEffect(() => {
-    if (formData.hospital_id) axios.get(`${API_URL}/api/appointments/doctor-slots/${formData.hospital_id}`).then(res => setDoctorSlots(Array.isArray(res.data) ? res.data : [])).catch(console.error);
+    if (formData.hospital_id) axios.get(`/api/appointments/doctor-slots/${formData.hospital_id}`).then(res => setDoctorSlots(Array.isArray(res.data) ? res.data : [])).catch(console.error);
   }, [formData.hospital_id]);
 
   const fetchEstimate = useCallback(async () => {
     if (!formData.hospital_id || !formData.doctor_name) return;
     setEstimateLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/api/appointments/estimate`, {
+      const res = await axios.post('/api/appointments/estimate', {
         hospital_id: formData.hospital_id, doctor_name: formData.doctor_name,
         preferred_time: formData.preferred_time || new Date().toISOString(),
         priority_level: formData.priority_level, problem_type: formData.problem_type
@@ -52,7 +50,7 @@ export default function AppointmentBooking() {
 
   const handleBooking = async (e) => {
     e.preventDefault(); setLoading(true);
-    try { const res = await axios.post(`${API_URL}/api/appointments`, formData); setBookingConfirmed(res.data); }
+    try { const res = await axios.post('/api/appointments', formData); setBookingConfirmed(res.data); }
     catch (error) { console.error(error); alert('Booking fail ho gayi! Phir se try karein.'); }
     setLoading(false);
   };

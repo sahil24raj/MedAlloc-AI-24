@@ -12,14 +12,8 @@ export default function PatientForm() {
   const handleSubmit = async (e) => {
     e.preventDefault(); setLoading(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
-      
-      // Safety check for mixed content
-      if (window.location.protocol === 'https:' && API_URL.startsWith('http://localhost')) {
-        console.warn('Backend URL is localhost but site is HTTPS. This request will likely fail due to Mixed Content.');
-      }
-
-      await axios.post(`${API_URL}/api/patients`, { 
+      // Use relative path for Vercel compatibility
+      await axios.post('/api/patients', { 
         ...formData, 
         location: { lat: parseFloat(formData.lat), lng: parseFloat(formData.lng) } 
       });

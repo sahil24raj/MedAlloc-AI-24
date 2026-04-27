@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
-
 export default function LiveQueueTracker({ socket }) {
   const [hospitals, setHospitals] = useState([]);
   const [selectedHospital, setSelectedHospital] = useState('');
@@ -10,7 +8,7 @@ export default function LiveQueueTracker({ socket }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    axios.get(`${API_URL}/api/hospitals`).then(res => {
+    axios.get('/api/hospitals').then(res => {
       const data = Array.isArray(res.data) ? res.data : [];
       setHospitals(data);
       if (data.length > 0) setSelectedHospital(data[0]._id);
