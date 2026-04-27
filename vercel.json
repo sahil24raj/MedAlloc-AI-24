@@ -3,11 +3,10 @@
   "buildCommand": "npm run vercel-build",
   "installCommand": "npm run vercel-install",
   "outputDirectory": "client/dist",
-  "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/main"
+      "source": "/api/:path*",
+      "destination": "/api/index.js"
     },
     {
       "source": "/((?!api/).*)",
