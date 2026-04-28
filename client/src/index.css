@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ===== NEON MEDTECH AI — Design System ===== */
 /* Inspired by Stitch: Neuro-Core Ops Login */
